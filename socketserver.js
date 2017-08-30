@@ -42,7 +42,7 @@ var devicePoolMounter = () => {
 	}
 	setTimeout(devicePoolMounter, 1000);
 }
-fs.unlink('/tmp/udev.sock', (err) => {
+fs.unlink(UNIXSOCKET, (err) => {
 	const server = net.createServer((con) => {
 		con.on('data', (data) => {
 			console.log();
@@ -56,7 +56,7 @@ fs.unlink('/tmp/udev.sock', (err) => {
 	});
 	server.listen(UNIXSOCKET, () => {
 		console.log();
-		console.log('Socket bound to /tmp/udev.sock');
+		console.log("Socket is bound!");
 	});
 });
 

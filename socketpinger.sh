@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "$@" > /tmp/udev.sock
+echo "$@" > /tmp/udev.auto.update.socket

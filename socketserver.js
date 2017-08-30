@@ -2,6 +2,7 @@ const net = require('net');
 const fs = require('fs');
 const { spawnSync } = require('child_process');
 
+var UNIXSOCKET = "/tmp/udev.auto.update.socket";
 var DESTDIR = "/tmp/socketmountpoint/";
 var mountingPool = [];
 var updateList = [];
@@ -53,7 +54,7 @@ fs.unlink('/tmp/udev.sock', (err) => {
 	server.on('error', (err) => {
 	  throw err;
 	});
-	server.listen("/tmp/udev.sock", () => {
+	server.listen(UNIXSOCKET, () => {
 		console.log();
 		console.log('Socket bound to /tmp/udev.sock');
 	});

@@ -1,0 +1,1 @@
+KERNEL=="sd*", SUBSYSTEM=="block", RUN+="/socketpinger.sh $env{ACTION} %k"

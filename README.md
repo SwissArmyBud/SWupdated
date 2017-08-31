@@ -17,9 +17,9 @@ This software collection is meant to be used to trigger the update of embedded s
 1. The udev service notices a new drive and fires the shell script.
 2. The shell script passes all of it's information to the node script.
 3. The node script:
-  1. Checks the action/name and determines if an update may be available.
-  2. Adds all appropriate drives/partitions to a drive list.
-  3. Mounts all entries (one by one) in the drive list, and scans their base directory.
-  4. Fetches any files from the scanned directory that match an update pattern.
-  5. Updates are run (one by one) from the device, using SWupdate and its handlers.
-    - The devices is restarted if any updates have been applied.
+    1. Checks the action/name and determines if an update may be available.
+    2. Adds all appropriate drives/partitions to a drive list.
+    3. Mounts all entries (one by one) in the drive list, and scans their base directory.
+    4. Fetches any files from the scanned directory that match an update pattern.
+    5. Updates are run (one by one) from the device, using SWupdate and its handlers.
+        - The devices is restarted if any updates have been applied.

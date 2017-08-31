@@ -3,31 +3,18 @@ const fs = require('fs');
 const { spawnSync } = require('child_process');
 
 var UNIXSOCKET = "/tmp/udev.auto.update.socket";
-var DESTDIR = "/tmp/socketmountpoint/";
+var DESTDIR = "/tmp/tempmountpoint/";
+
+var pattern = ".swu";
+
 var mountingPool = [];
 var updateList = [];
-var pattern = ".ald.swu";
-var scanCounter = 1;
+
+var mountScheduler = null;
+var updateRequired = false;
 
 var devicePoolMounter = () => {
-	if(mountingPool.length === 0){
-		message = "Scanning.";
-		for(var i=0; i<5; i++){
-			let char = " ";
-			if(i<scanCounter){
-				char = ".";
-			}
-			message += char;
-		}
-		process.stdout.write(message + "\r");
-		if(scanCounter<5){
-			scanCounter += 1;
-		}
-		else{
-			scanCounter = 0;
-		}
-	}
-	else{
+	if(mountingPool.length !== 0){
 		console.log();
 		console.log("Pool Mounter:");
 		console.log("----- Size: " + mountingPool.length);
@@ -39,8 +26,14 @@ var devicePoolMounter = () => {
 			console.log("--- Finished with:" + mountingPool.splice(mountingPool.indexOf(device), 1));
 			console.log();
 		}
+		if(updateRequired){
+			// If we processed updates, schedule a restart when finished
+			console.log();
+			console.log(" ---> SCHEDULING SYSTEM RESTART <---");
+			console.log();
+			setTimeout(() => {spawnSync('shutdown', ["-r", "now"]);}, 3000);
+		}
 	}
-	setTimeout(devicePoolMounter, 1000);
 }
 fs.unlink(UNIXSOCKET, (err) => {
 	const server = net.createServer((con) => {
@@ -64,13 +57,20 @@ var socketHandler = (data) => {
 	var eventText = data.toString().split(" ");
 	console.log("Socket handler:");
 	console.log("--- Task: " + eventText[0]);
+	// Clean the hanging newline from our input string
 	eventText[1] = eventText[1].substring(0,eventText[1].length-1);
 	console.log("--- Part: " + eventText[1]);
+	// Check if the action was a drive or a partition (parts have 4 chars, ex. sda1)
 	if(eventText[1].length > 3){
 		if(eventText[0] === "add"){
 			console.log("--scheduling--");
-			mountingPool.push(eventText[1]);
 			console.log();
+			// Add the partition to our pool of available devices and schedule a scan
+			mountingPool.push(eventText[1]);
+			if(mountingPool !== null){
+				clearTimeout(mountScheduler);
+			}
+			mountScheduler = setTimeout(devicePoolMounter, 2000);
 			return;
 		}
 	}
@@ -80,9 +80,13 @@ var socketHandler = (data) => {
 
 var mountDaemon = (device) => {
 	console.log("--> Sync daemon spawned for: " + device);
+	// Ensure no one else is using our DESTDIR
 	spawnSync('umount', [DESTDIR]);
+	// Ensure our DESTDIR is empty
 	spawnSync('rm', ["-rf", DESTDIR]);
+	// Ensure our DESTDIR exists
 	spawnSync('mkdir', [DESTDIR]);
+	// Ensure our partition is mounted to our DESTDIR
 	spawnSync('mount', ["/dev/" + device, DESTDIR]);
 	// Grab the directory listing of DESTDIR now that it is mounted
 	var fileList = spawnSync("ls", [DESTDIR]);
@@ -99,20 +103,21 @@ var mountDaemon = (device) => {
 	}
 	console.log();
 	
-	// If we have updates - run them in alpha/num order
+	// If the partition contains updates, run them
 	if (updateList.length > 0) {
+		// Run them in alpha/num order
 		updateList.sort();
 		console.log("----- Found updates:");
 		for(entry in updateList){
 			console.log("--- SWupdate:")
 			console.log("--- " + updateList[entry]);
-			spawnSync('cp', [DESTDIR + updateList[entry], "/"]);
-			let swupdate = spawnSync('swupdate', ["-i", "/" + updateList[entry]]);
+			// Kick SWupdate to process the update file
+			let swupdate = spawnSync('swupdate', ["-i", DESTDIR + updateList[entry]]);
 			console.log("-- OUT: ");
 			swupdate = swupdate.output.toString();
-			console.log(swupdate.substring(1,fileList.length-2));
+			console.log(swupdate.substring(1,updateList.length-2));
 		}
-		setTimeout(() => {spawnSync('shutdown', ["-r", "now"]);}, 3000);
+		updateRequired = true;
 	}
 	else {
 		console.log("----- No updates found!");
@@ -120,5 +125,3 @@ var mountDaemon = (device) => {
 		spawnSync('umount', [DESTDIR]);
 	}
 }
-
-setTimeout(devicePoolMounter, 1000);

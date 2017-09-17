@@ -1,1 +1,1 @@
-KERNEL=="sd*", SUBSYSTEM=="block", RUN+="/socketpinger.sh $env{ACTION} %k"
+KERNEL=="sd*", SUBSYSTEM=="block", RUN+="/etc/udev/client.sh $env{ACTION} %k"

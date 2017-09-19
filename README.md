@@ -1,7 +1,7 @@
 # SWupdate Daemon and Tools
 
 ## Overview
-This software collection is meant to be used to trigger the update of embedded systems. It uses a udev rule to call a shell script when a new drive (USB) is inserted, and writes the event information to a Unix socket. The final piece of software is a Node.js server listening on the same socket, and uses the provided information to initiate an update process with SWupdate.
+This software collection is meant to be used to trigger the update of embedded systems. It uses a udev rule to call a shell script when a new drive (USB) is inserted, and writes the event information to a Unix socket. The final piece of software is a Node.js server listening on the same socket, and uses the provided information to initiate an update process with [SWupdate](https://github.com/SwissArmyBud/SWupdate).
 
 ## Requirements
 1. Node.js runtime installed

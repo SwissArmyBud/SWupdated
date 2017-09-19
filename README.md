@@ -12,7 +12,7 @@ This software collection is meant to be used to trigger the update of embedded s
 1. The udev rule must be added to the udev rules.d directory.
 2. The shell script must be named/located as desired by the udev rule.
 3. The node process must be running in order for the updates to fire.
-  - Run as 'node server.js &' to run in background, or use PM2.
+    - Run as 'node server.js &' to run in background, or use PM2.
 
 ## Process
 1. The udev service notices a new drive and fires the shell script.
